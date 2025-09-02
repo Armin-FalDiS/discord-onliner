@@ -6,7 +6,7 @@ A pre-built Docker image is available on GitHub Container Registry for easy depl
 
 1. **Pull the image:**
 ```bash
-docker pull ghcr.io/yourusername/discord-onliner:latest
+docker pull ghcr.io/Armin-FalDiS/discord-onliner:main
 ```
 
 2. **Create your configuration:**
@@ -22,7 +22,7 @@ cp env.example .env
 
 3. **Run the container:**
 ```bash
-docker run -d --name discord-onliner --env-file .env ghcr.io/yourusername/discord-onliner:latest
+docker run -d --name discord-onliner --env-file .env ghcr.io/Armin-FalDiS/discord-onliner:main
 ```
 
 ### Docker Commands
