@@ -13,5 +13,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the script
 COPY discord.py .
 
-# Run the script
-CMD ["python", "discord.py"]
+# Run the script with unbuffered output for immediate logging
+CMD ["python", "-u", "discord.py"]

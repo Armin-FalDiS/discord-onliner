@@ -4,7 +4,23 @@ import requests
 import json
 import os
 import threading
+import logging
+import sys
 from dotenv import load_dotenv
+
+# Configure logging to output to stdout with immediate flushing
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Force stdout to be unbuffered for Docker logs
+sys.stdout.reconfigure(line_buffering=True)
+sys.stderr.reconfigure(line_buffering=True)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -42,13 +58,13 @@ def get_user_info(token):
         userid = userinfo.get("id", "Unknown")
         return username, discriminator, userid
     except Exception as e:
-        print(f"Error getting user info: {e}")
+        logger.error(f"Error getting user info: {e}")
         return "Unknown", "0000", "Unknown"
 
 def onliner(token, status, custom_status, user_id):
     """Main onliner function for a single user"""
     username, discriminator, userid = get_user_info(token)
-    print(f"User {user_id}: Logged in as {username}#{discriminator} ({userid}).")
+    logger.info(f"User {user_id}: Logged in as {username}#{discriminator} ({userid}).")
     
     while True:
         try:
@@ -103,8 +119,8 @@ def onliner(token, status, custom_status, user_id):
                 ws.send(json.dumps(online))
                 
         except Exception as e:
-            print(f"User {user_id} ({username}): Connection error: {e}")
-            print(f"User {user_id} ({username}): Reconnecting in 5 seconds...")
+            logger.error(f"User {user_id} ({username}): Connection error: {e}")
+            logger.info(f"User {user_id} ({username}): Reconnecting in 5 seconds...")
             time.sleep(5)
 
 def run_onliners():
@@ -112,11 +128,11 @@ def run_onliners():
     configs = get_user_configs()
     
     if not configs:
-        print("No Discord tokens configured. Please set DISCORD_TOKEN_1, DISCORD_TOKEN_2, etc.")
-        print("Example: DISCORD_TOKEN_1=your_token_here")
+        logger.error("No Discord tokens configured. Please set DISCORD_TOKEN_1, DISCORD_TOKEN_2, etc.")
+        logger.error("Example: DISCORD_TOKEN_1=your_token_here")
         return
     
-    print(f"Starting Discord onliner for {len(configs)} user(s)...")
+    logger.info(f"Starting Discord onliner for {len(configs)} user(s)...")
     
     # Create and start threads for each user
     threads = []
@@ -134,7 +150,8 @@ def run_onliners():
         for thread in threads:
             thread.join()
     except KeyboardInterrupt:
-        print("\nShutting down Discord onliners...")
+        logger.info("\nShutting down Discord onliners...")
 
 if __name__ == "__main__":
+    logger.info("Discord Onliner starting up...")
     run_onliners()
