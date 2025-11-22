@@ -20,7 +20,9 @@ cp config.json.example config.json
 #     {
 #       "token": "your_first_token_here",
 #       "status": "dnd",
-#       "custom_status": ""
+#       "custom_status": "",
+#       "start_hour": 9,
+#       "end_hour": 17
 #     }
 #   ]
 # }
@@ -54,6 +56,10 @@ Configure your Discord accounts in the `config.json` file:
 - `token` - Your Discord user token (required)
 - `status` - Status: "online", "idle", "dnd", or "invisible" (default: "dnd")
 - `custom_status` - Custom status message (optional, leave empty string for none)
+- `start_hour` - Hour when account should go online (0-23, integer, required)
+- `end_hour` - Hour when account should go offline (0-23, integer, required, must be greater than start_hour)
+
+**Note:** Accounts will only be online during the specified hour range. The account will automatically disconnect when outside the allowed hours and reconnect when the start hour is reached.
 
 **Example config.json file:**
 ```json
@@ -62,12 +68,16 @@ Configure your Discord accounts in the `config.json` file:
     {
       "token": "your_first_token_here",
       "status": "dnd",
-      "custom_status": ""
+      "custom_status": "",
+      "start_hour": 9,
+      "end_hour": 17
     },
     {
       "token": "your_second_token_here",
       "status": "online",
-      "custom_status": "Gaming"
+      "custom_status": "Gaming",
+      "start_hour": 18,
+      "end_hour": 23
     }
   ]
 }

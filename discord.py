@@ -6,6 +6,7 @@ import threading
 import logging
 import sys
 from pathlib import Path
+from datetime import datetime, timedelta
 
 # Configure logging to output to stdout with immediate flushing
 logging.basicConfig(
@@ -48,10 +49,35 @@ def get_user_configs():
             status = account.get('status', 'dnd')
             custom_status = account.get('custom_status', '')
             
+            # Get start_hour and end_hour, validate them
+            start_hour = account.get('start_hour')
+            end_hour = account.get('end_hour')
+            
+            if start_hour is None or end_hour is None:
+                logger.error(f"Account {idx}: Both start_hour and end_hour are required")
+                continue
+            
+            try:
+                start_hour = int(start_hour)
+                end_hour = int(end_hour)
+            except (ValueError, TypeError):
+                logger.error(f"Account {idx}: start_hour and end_hour must be integers")
+                continue
+            
+            if not (0 <= start_hour <= 23) or not (0 <= end_hour <= 23):
+                logger.error(f"Account {idx}: start_hour and end_hour must be between 0 and 23")
+                continue
+            
+            if start_hour >= end_hour:
+                logger.error(f"Account {idx}: start_hour ({start_hour}) must be less than end_hour ({end_hour})")
+                continue
+            
             configs.append({
                 'token': token,
                 'status': status,
                 'custom_status': custom_status,
+                'start_hour': start_hour,
+                'end_hour': end_hour,
                 'user_id': idx
             })
         
@@ -77,12 +103,44 @@ def get_user_info(token):
         logger.error(f"Error getting user info: {e}")
         return "Unknown", "0000", "Unknown"
 
-def onliner(token, status, custom_status, user_id):
+def is_within_hours(current_hour, start_hour, end_hour):
+    """Check if current hour is within the allowed time range"""
+    return start_hour <= current_hour < end_hour
+
+def wait_until_start_hour(start_hour, end_hour, user_id, username):
+    """Wait until the start hour is reached"""
+    while True:
+        current_time = datetime.now()
+        current_hour = current_time.hour
+        
+        # Check if we're now within allowed hours
+        if is_within_hours(current_hour, start_hour, end_hour):
+            break
+        
+        # Calculate target time (start_hour today or tomorrow)
+        target_time = current_time.replace(hour=start_hour, minute=0, second=0, microsecond=0)
+        
+        # If we're past end_hour or target_time is in the past, wait until tomorrow
+        if current_hour >= end_hour or target_time <= current_time:
+            target_time = target_time + timedelta(days=1)
+        
+        seconds_to_wait = (target_time - current_time).total_seconds()
+        hours_to_wait = int(seconds_to_wait // 3600)
+        minutes_to_wait = int((seconds_to_wait % 3600) // 60)
+        logger.info(f"User {user_id} ({username}): Outside allowed hours (current: {current_hour}:00). Waiting until {start_hour}:00 ({hours_to_wait}h {minutes_to_wait}m)")
+        time.sleep(min(seconds_to_wait, 3600))  # Sleep in 1-hour chunks to check periodically
+
+def onliner(token, status, custom_status, start_hour, end_hour, user_id):
     """Main onliner function for a single user"""
     username, discriminator, userid = get_user_info(token)
-    logger.info(f"User {user_id}: Logged in as {username}#{discriminator} ({userid}).")
+    logger.info(f"User {user_id}: Logged in as {username}#{discriminator} ({userid}). Active hours: {start_hour}:00 - {end_hour}:00")
     
     while True:
+        # Check if we're within allowed hours
+        current_hour = datetime.now().hour
+        if not is_within_hours(current_hour, start_hour, end_hour):
+            wait_until_start_hour(start_hour, end_hour, user_id, username)
+            continue
         try:
             ws = websocket.WebSocket()
             ws.connect("wss://gateway.discord.gg/?v=9&encoding=json")
@@ -131,6 +189,13 @@ def onliner(token, status, custom_status, user_id):
             
             # Keep connection alive
             while True:
+                # Check if we're still within allowed hours
+                current_hour = datetime.now().hour
+                if not is_within_hours(current_hour, start_hour, end_hour):
+                    logger.info(f"User {user_id} ({username}): Outside allowed hours ({current_hour}:00). Disconnecting.")
+                    ws.close()
+                    break
+                
                 time.sleep(50)
                 ws.send(json.dumps(online))
                 
@@ -155,7 +220,8 @@ def run_onliners():
     for config in configs:
         thread = threading.Thread(
             target=onliner,
-            args=(config['token'], config['status'], config['custom_status'], config['user_id']),
+            args=(config['token'], config['status'], config['custom_status'], 
+                  config['start_hour'], config['end_hour'], config['user_id']),
             daemon=True
         )
         thread.start()

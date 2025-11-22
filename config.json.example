@@ -3,32 +3,44 @@
     {
       "token": "YOUR_FIRST_USER_TOKEN_HERE",
       "status": "dnd",
-      "custom_status": ""
+      "custom_status": "",
+      "start_hour": 9,
+      "end_hour": 17
     },
     {
       "token": "YOUR_SECOND_USER_TOKEN_HERE",
       "status": "online",
-      "custom_status": "Gaming"
+      "custom_status": "Gaming",
+      "start_hour": 18,
+      "end_hour": 23
     },
     {
       "token": "YOUR_THIRD_USER_TOKEN_HERE",
       "status": "idle",
-      "custom_status": "AFK"
+      "custom_status": "AFK",
+      "start_hour": 0,
+      "end_hour": 8
     },
     {
       "token": "YOUR_FOURTH_USER_TOKEN_HERE",
       "status": "online",
-      "custom_status": "Working"
+      "custom_status": "Working",
+      "start_hour": 8,
+      "end_hour": 20
     },
     {
       "token": "YOUR_FIFTH_USER_TOKEN_HERE",
       "status": "dnd",
-      "custom_status": "Busy"
+      "custom_status": "Busy",
+      "start_hour": 10,
+      "end_hour": 16
     },
     {
       "token": "YOUR_SIXTH_USER_TOKEN_HERE",
       "status": "invisible",
-      "custom_status": ""
+      "custom_status": "",
+      "start_hour": 12,
+      "end_hour": 18
     }
   ]
 }
