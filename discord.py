@@ -2,11 +2,10 @@ import websocket
 import time
 import requests
 import json
-import os
 import threading
 import logging
 import sys
-from dotenv import load_dotenv
+from pathlib import Path
 
 # Configure logging to output to stdout with immediate flushing
 logging.basicConfig(
@@ -22,31 +21,48 @@ logger = logging.getLogger(__name__)
 sys.stdout.reconfigure(line_buffering=True)
 sys.stderr.reconfigure(line_buffering=True)
 
-# Load environment variables from .env file
-load_dotenv()
-
 def get_user_configs():
-    """Get all user configurations from environment variables"""
-    configs = []
-    i = 1
+    """Get all user configurations from JSON config file"""
+    config_file = Path("config.json")
     
-    while True:
-        token = os.getenv(f"DISCORD_TOKEN_{i}")
-        if not token or token == "YOUR_DISCORD_USER_TOKEN":
-            break
-            
-        status = os.getenv(f"DISCORD_STATUS_{i}", "dnd")
-        custom_status = os.getenv(f"DISCORD_CUSTOM_STATUS_{i}", "")
+    if not config_file.exists():
+        logger.error(f"Config file '{config_file}' not found. Please create it based on config.json.example")
+        return []
+    
+    try:
+        with open(config_file, 'r', encoding='utf-8') as f:
+            config_data = json.load(f)
         
-        configs.append({
-            'token': token,
-            'status': status,
-            'custom_status': custom_status,
-            'user_id': i
-        })
-        i += 1
+        accounts = config_data.get('accounts', [])
+        if not accounts:
+            logger.error("No accounts found in config.json")
+            return []
+        
+        configs = []
+        for idx, account in enumerate(accounts, start=1):
+            token = account.get('token', '').strip()
+            if not token or token == "YOUR_DISCORD_USER_TOKEN":
+                logger.warning(f"Account {idx}: Skipping invalid or placeholder token")
+                continue
+            
+            status = account.get('status', 'dnd')
+            custom_status = account.get('custom_status', '')
+            
+            configs.append({
+                'token': token,
+                'status': status,
+                'custom_status': custom_status,
+                'user_id': idx
+            })
+        
+        return configs
     
-    return configs
+    except json.JSONDecodeError as e:
+        logger.error(f"Error parsing config.json: {e}")
+        return []
+    except Exception as e:
+        logger.error(f"Error reading config.json: {e}")
+        return []
 
 def get_user_info(token):
     """Get user information from Discord API"""
@@ -128,8 +144,8 @@ def run_onliners():
     configs = get_user_configs()
     
     if not configs:
-        logger.error("No Discord tokens configured. Please set DISCORD_TOKEN_1, DISCORD_TOKEN_2, etc.")
-        logger.error("Example: DISCORD_TOKEN_1=your_token_here")
+        logger.error("No Discord accounts configured. Please check your config.json file.")
+        logger.error("Example: See config.json.example for the expected format")
         return
     
     logger.info(f"Starting Discord onliner for {len(configs)} user(s)...")

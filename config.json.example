@@ -1,0 +1,34 @@
+{
+  "accounts": [
+    {
+      "token": "YOUR_FIRST_USER_TOKEN_HERE",
+      "status": "dnd",
+      "custom_status": ""
+    },
+    {
+      "token": "YOUR_SECOND_USER_TOKEN_HERE",
+      "status": "online",
+      "custom_status": "Gaming"
+    },
+    {
+      "token": "YOUR_THIRD_USER_TOKEN_HERE",
+      "status": "idle",
+      "custom_status": "AFK"
+    },
+    {
+      "token": "YOUR_FOURTH_USER_TOKEN_HERE",
+      "status": "online",
+      "custom_status": "Working"
+    },
+    {
+      "token": "YOUR_FIFTH_USER_TOKEN_HERE",
+      "status": "dnd",
+      "custom_status": "Busy"
+    },
+    {
+      "token": "YOUR_SIXTH_USER_TOKEN_HERE",
+      "status": "invisible",
+      "custom_status": ""
+    }
+  ]
+}

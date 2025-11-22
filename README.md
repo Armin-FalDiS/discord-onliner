@@ -12,17 +12,23 @@ docker pull ghcr.io/armin-faldis/discord-onliner:main
 2. **Create your configuration:**
 ```bash
 # Copy the example file
-cp env.example .env
+cp config.json.example config.json
 
-# Edit .env with your Discord tokens
-# DISCORD_TOKEN_1=your_first_token_here
-# DISCORD_STATUS_1=dnd
-# DISCORD_CUSTOM_STATUS_1=
+# Edit config.json with your Discord tokens
+# {
+#   "accounts": [
+#     {
+#       "token": "your_first_token_here",
+#       "status": "dnd",
+#       "custom_status": ""
+#     }
+#   ]
+# }
 ```
 
 3. **Run the container:**
 ```bash
-docker run -d --name discord-onliner --env-file .env ghcr.io/armin-faldis/discord-onliner:main
+docker run -d --name discord-onliner -v ./config.json:/app/config.json ghcr.io/armin-faldis/discord-onliner:main
 ```
 
 ### Docker Commands
@@ -41,21 +47,28 @@ docker rm discord-onliner
 docker restart discord-onliner
 ```
 
-### Environment Variables
+### Configuration
 
-Configure your Discord accounts in the `.env` file:
+Configure your Discord accounts in the `config.json` file:
 
-- `DISCORD_TOKEN_1`, `DISCORD_TOKEN_2`, etc. - Your Discord user tokens
-- `DISCORD_STATUS_1`, `DISCORD_STATUS_2`, etc. - Status: "online", "idle", "dnd", or "invisible"
-- `DISCORD_CUSTOM_STATUS_1`, `DISCORD_CUSTOM_STATUS_2`, etc. - Custom status messages (optional)
+- `token` - Your Discord user token (required)
+- `status` - Status: "online", "idle", "dnd", or "invisible" (default: "dnd")
+- `custom_status` - Custom status message (optional, leave empty string for none)
 
-**Example .env file:**
-```bash
-DISCORD_TOKEN_1=your_first_token_here
-DISCORD_STATUS_1=dnd
-DISCORD_CUSTOM_STATUS_1=
-
-DISCORD_TOKEN_2=your_second_token_here
-DISCORD_STATUS_2=online
-DISCORD_CUSTOM_STATUS_2=Gaming
+**Example config.json file:**
+```json
+{
+  "accounts": [
+    {
+      "token": "your_first_token_here",
+      "status": "dnd",
+      "custom_status": ""
+    },
+    {
+      "token": "your_second_token_here",
+      "status": "online",
+      "custom_status": "Gaming"
+    }
+  ]
+}
 ```
