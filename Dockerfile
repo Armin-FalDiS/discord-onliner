@@ -2,7 +2,7 @@
 FROM python:3.9-alpine
 
 # Set working directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # Copy requirements first for better caching
 COPY requirements.txt .
